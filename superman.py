@@ -2,6 +2,8 @@ import requests
 import threading
 import time
 import sys
+import os
+from shell_find import get_shell_info
 
 from colorama import Fore, Back, Style, init
 
@@ -53,9 +55,9 @@ def loading_animation(loading_event):
 
 def run_command(command):
     # Run the command
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    result = os.popen(command)
     # Output the result
-    print(result.stdout)
+    print(result.read())
 
 def explain_command(command_to_explain):
     # Define the data with the user's input
@@ -85,9 +87,8 @@ def explain_command(command_to_explain):
         # Check if the request was successful
         if response.status_code == 200:
             # Print the response
-            print("\nResponse JSON:", response.json())
             explanation = response.json()['message']['content']
-            print("Explanation:", explanation)
+            print(f"""{superman_color}Explanation of command:""", f""": \n{Fore.YELLOW}""", explanation)
             request_times.append(response.json()['total_duration'])
         else:
             print("Error:", response.status_code, response.text)
@@ -99,21 +100,28 @@ def explain_command(command_to_explain):
 
 # URL with the custom port
 # will need 128.83.177.39 or cloudflare
-url = "http://128.83.177.39:11434/api/chat"
+shell_info = get_shell_info()
+url = "https://andrews-accepted-subscribers-reach.trycloudflare.com/api/chat"
 
 request_times = []
 
 # Start the loop for multiple inputs
+superman_color = Fore.LIGHTGREEN_EX
+start_message = f"""{superman_color}Welcome to {Fore.MAGENTA}superMAN{superman_color}! Your one stop shop for all your terminal command needs.{Fore.WHITE}"""
+question_prompt = f"""{superman_color}\nAsk me a question! or type \"exit\" to quit: {Fore.WHITE}"""
+exit_message = f"""{superman_color}\nUp, up, and away! Until next time.{Fore.WHITE}"""
+print(start_message)
 while True:
     # Prompt the user for input
-    user_input = input("\nEnter your question or type \"exit\": ")
+    user_input = input(question_prompt)
     
     # Break the loop if the user types "exit"
     if user_input.lower() == "exit":
-        print("Exiting superman.")
+        print(exit_message)
         break
     
     # Define the data with the user's input
+    user_input = shell_info + " " + user_input
     data = {
         "model": "superman_code",
         "messages": [
@@ -140,30 +148,31 @@ while True:
         # Check if the request was successful
         if response.status_code == 200:
             # Print the response
-            print("\nResponse JSON:", response.json())
             command = response.json()['message']['content']
             if command == "Invalid question.":
                 print(command)
             else:
-                print("Enter y to run this command, e to explain this command, r to retry, n to cancel:", command)
-                run = input()
-                if run == "y":
+                print(f"""{superman_color}Here's your command(s): """)
+                print(f"""{Fore.YELLOW}""", command)
+                print(f"""{superman_color}Enter 'r' to run this command, 'e' to explain this command, 'm' to modify, or 'x' to cancel.{Fore.WHITE}""")
+                run = input().lower()
+                if run == "r":
                     run_command(command)
-                elif run == "r":
+                elif run == "m":
                     continue
                 elif run == "e":
                     explain_command(command)
-                elif run == "n":
-                    print("Command cancelled")
+                elif run == "x":
+                    print(f"""{superman_color}Command cancelled""")
                 else:
-                    print("Invalid input")
+                    print(f"""{Fore.RED}Invalid input""")
             request_times.append(response.json()['total_duration'])
         else:
-            print("Error:", response.status_code, response.text)
+            print(f"""{Fore.RED}Error:""", response.status_code, response.text)
     
     except requests.exceptions.RequestException as e:
         stop_loading_event.set()
         loader_thread.join()
-        print("Request failed:", e)
+        print(f"""{Fore.RED}Request failed:""", e)
 
-print("Request times:", request_times)
+# print("Request times:", request_times)
