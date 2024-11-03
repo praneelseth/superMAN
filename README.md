@@ -1,5 +1,3 @@
-# superMAN
-
 # Never fear, superMAN is here! 🦸‍♂️
 
 ## Inspiration ✨
