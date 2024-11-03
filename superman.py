@@ -3,7 +3,7 @@ import threading
 import time
 import sys
 import os
-from shell_find import get_shell_info
+# from shell_find import get_shell_info
 
 from colorama import Fore, Back, Style, init
 
@@ -100,7 +100,7 @@ def explain_command(command_to_explain):
 
 # URL with the custom port
 # will need 128.83.177.39 or cloudflare
-shell_info = get_shell_info()
+# shell_info = get_shell_info()
 url = "https://andrews-accepted-subscribers-reach.trycloudflare.com/api/chat"
 
 request_times = []
@@ -121,7 +121,7 @@ while True:
         break
     
     # Define the data with the user's input
-    user_input = shell_info + " " + user_input
+    # user_input = shell_info + " " + user_input
     data = {
         "model": "superman_code",
         "messages": [
@@ -139,6 +139,7 @@ while True:
 
     # Send the POST request
     try:
+        print("*** user input before request: ", user_input)
         response = requests.post(url, json=data)
         
         # Stop the loading animation
@@ -149,11 +150,15 @@ while True:
         if response.status_code == 200:
             # Print the response
             command = response.json()['message']['content']
+            print("*** raw output from model: ", command)
+            command = command.replace("`", "")
+            command = command.replace("bash", "")
+            # command = command.replace("bash", "")
             if command == "Invalid question.":
                 print(command)
             else:
-                print(f"""{superman_color}Here's your command(s): """)
-                print(f"""{Fore.YELLOW}""", command)
+                print(f"""{superman_color}Here's your command(s):""")
+                print(f"""{Fore.YELLOW}""",command)
                 print(f"""{superman_color}Enter 'r' to run this command, 'e' to explain this command, 'm' to modify, or 'x' to cancel.{Fore.WHITE}""")
                 run = input().lower()
                 if run == "r":
