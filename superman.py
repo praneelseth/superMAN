@@ -42,14 +42,14 @@ def print_ball(i):
 # Initialize colorama for cross-platform color support
 init()
 
-def loading_animation():
-    while not stop_loading_event.is_set():
+def loading_animation(loading_event):
+    while not loading_event.is_set():
         # ANSI escape sequence to clear screen
         for i in range(len(colors)):
             print("\033[H\033[J", end="")
             print_ball(i)
             time.sleep(0.1)
-    print("\033c", end="")
+    print("\033[H\033[J", end="")
 
 def run_command(command):
     # Run the command
@@ -57,49 +57,49 @@ def run_command(command):
     # Output the result
     print(result.stdout)
 
-def explain_command(command):
+def explain_command(command_to_explain):
     # Define the data with the user's input
-    data = {
+    explain_data = {
         "model": "superman_expl",
         "messages": [
-            { "role": "user", "content": command }
+            { "role": "user", "content": command_to_explain }
         ],
         "stream": False
     }
+
     # Create a threading event to control the loading animation
-    stop_loading_event = threading.Event()
+    explain_loading_event = threading.Event()
     
     # Start the loading animation in a separate thread
-    loader_thread = threading.Thread(target=loading_animation)
-    loader_thread.start()
+    explain_loader_thread = threading.Thread(target=loading_animation, args=(explain_loading_event,))
+    explain_loader_thread.start()
 
     # Send the POST request
     try:
-        response = requests.post(url, json=data)
+        response = requests.post(url, json=explain_data)
         
         # Stop the loading animation
-        stop_loading_event.set()
-        loader_thread.join()  # Wait for the loader thread to finish
+        explain_loading_event.set()
+        explain_loader_thread.join()  # Wait for the loader thread to finish
         
         # Check if the request was successful
         if response.status_code == 200:
             # Print the response
             print("\nResponse JSON:", response.json())
-            command = response.json()['message']['content']
-            print("Explanation: ")
-            print(command)
+            explanation = response.json()['message']['content']
+            print("Explanation:", explanation)
             request_times.append(response.json()['total_duration'])
         else:
             print("Error:", response.status_code, response.text)
     
     except requests.exceptions.RequestException as e:
-        stop_loading_event.set()
-        loader_thread.join()
+        explain_loading_event.set()
+        explain_loader_thread.join()
         print("Request failed:", e)
 
 # URL with the custom port
 # will need 128.83.177.39 or cloudflare
-url = "https://aviation-intro-distance-americans.trycloudflare.com/api/chat"
+url = "http://128.83.177.39:11434/api/chat"
 
 request_times = []
 
@@ -126,7 +126,7 @@ while True:
     stop_loading_event = threading.Event()
     
     # Start the loading animation in a separate thread
-    loader_thread = threading.Thread(target=loading_animation)
+    loader_thread = threading.Thread(target=loading_animation, args=(stop_loading_event,))
     loader_thread.start()
 
     # Send the POST request
