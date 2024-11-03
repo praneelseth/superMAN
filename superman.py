@@ -49,44 +49,57 @@ def loading_animation():
             print("\033[H\033[J", end="")
             print_ball(i)
             time.sleep(0.1)
-    print("\033[H\033[J", end="")
+    print("\033c", end="")
 
 def run_command(command):
     # Run the command
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
-
     # Output the result
-    print("Return Code:", result.returncode)
-    print("STDOUT:", result.stdout)
-    print("STDERR:", result.stderr)
+    print(result.stdout)
 
 def explain_command(command):
     # Define the data with the user's input
     data = {
         "model": "superMAN",
         "messages": [
-            { "role": "user", "content": "explain this command: " + user_input }
+            { "role": "user", "content": user_input }
         ],
         "stream": False
     }
+    # Create a threading event to control the loading animation
+    stop_loading_event = threading.Event()
+    
+    # Start the loading animation in a separate thread
+    loader_thread = threading.Thread(target=loading_animation)
+    loader_thread.start()
 
+    # Send the POST request
+    try:
+        response = requests.post(url, json=data)
+        
+        # Stop the loading animation
+        stop_loading_event.set()
+        loader_thread.join()  # Wait for the loader thread to finish
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Print the response
+            print("\nResponse JSON:", response.json())
+            command = response.json()['message']['content']
+            print("Explanation: ")
+            print(command)
+            request_times.append(response.json()['total_duration'])
+        else:
+            print("Error:", response.status_code, response.text)
+    
+    except requests.exceptions.RequestException as e:
+        stop_loading_event.set()
+        loader_thread.join()
+        print("Request failed:", e)
 
 # URL with the custom port
-# will need 128.83.177.39
-url = "http://128.83.177.39:11434/api/chat"
-
-# teaching_mode = False
-# teaching_mode_set = False
-
-# while not teaching_mode_set:
-#     teach = input("Enter y for teaching mode, n for no teaching mode")
-#     if teach == "y":
-#         teaching_mode_set = True
-#         teaching_mode = True
-#     elif teach == "n":
-#         teaching_mode_set = True
-#     else:
-#         print("Enter y or n\n")
+# will need 128.83.177.39 or cloudflare
+url = "https://aviation-intro-distance-americans.trycloudflare.com/api/chat"
 
 request_times = []
 
