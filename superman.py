@@ -60,9 +60,9 @@ def run_command(command):
 def explain_command(command):
     # Define the data with the user's input
     data = {
-        "model": "superMAN",
+        "model": "superman_expl",
         "messages": [
-            { "role": "user", "content": user_input }
+            { "role": "user", "content": command }
         ],
         "stream": False
     }
@@ -115,7 +115,7 @@ while True:
     
     # Define the data with the user's input
     data = {
-        "model": "superMAN",
+        "model": "superman_code",
         "messages": [
             { "role": "user", "content": user_input }
         ],
