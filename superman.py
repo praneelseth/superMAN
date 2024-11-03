@@ -139,7 +139,7 @@ while True:
 
     # Send the POST request
     try:
-        print("*** user input before request: ", user_input)
+        # print("*** user input before request: ", user_input)
         response = requests.post(url, json=data)
         
         # Stop the loading animation
@@ -150,7 +150,7 @@ while True:
         if response.status_code == 200:
             # Print the response
             command = response.json()['message']['content']
-            print("*** raw output from model: ", command)
+            # print("*** raw output from model: ", command)
             command = command.replace("`", "")
             command = command.replace("bash", "")
             # command = command.replace("bash", "")
